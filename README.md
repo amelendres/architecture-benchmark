@@ -44,6 +44,8 @@ Each downstream service adds a fixed 5ms latency.
 - Docker Compose
 - wrk2
 - ghz
+- jq
+- python
 
 ## How to Run - local
 Build:

@@ -25,14 +25,29 @@ jobs:
         chmod +x ./gradlew || true
         ./gradlew build --no-daemon
 
-    - name: Build images
-      run: docker compose -f compose.grpc.yaml build
+    # - name: Build images
+    #   run: docker compose -f compose.grpc.yaml build
 
     - name: Start stack
       run: docker compose -f compose.grpc.yaml up -d
 
-    - name: Warm up
-      run: sleep 20
+
+    - name: Install benchmark tools (ghz, jq, wrk2)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl wget unzip
+        # install ghz
+        GHZ_URL=$(curl -s https://api.github.com/repos/bojand/ghz/releases/latest | jq -r '.assets[] | select(.name|test("linux.*(amd64|x86_64)|linux_amd64")) | .browser_download_url' | head -n1)
+        if [ -n "$GHZ_URL" ]; then
+          curl -sL "$GHZ_URL" -o /tmp/ghz.tar.gz
+          tar -xzf /tmp/ghz.tar.gz -C /tmp || true
+          if [ -x /tmp/ghz ]; then sudo mv /tmp/ghz /usr/local/bin/ghz && sudo chmod +x /usr/local/bin/ghz; fi
+        fi
+        # build wrk2 (provides wrk)
+        git clone --depth 1 https://github.com/giltene/wrk2.git /tmp/wrk2
+        (cd /tmp/wrk2 && make)
+        sudo mv /tmp/wrk2/wrk /usr/local/bin/wrk
+        rm -rf /tmp/wrk2 /tmp/ghz.tar.gz
 
     - name: gRPC benchmark
       run: bash benchmarks/grpc.sh
@@ -41,10 +56,10 @@ jobs:
       run: |
         python3 benchmarks/compare_percentiles.py \
           benchmarks/baseline/grpc.json \
-          results/grpc.json
+          benchmarks/results/grpc.json
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
       with:
-        name: perf-results
-        path: results/
+        name: benchmark-results
+        path: benchmarks/results/
