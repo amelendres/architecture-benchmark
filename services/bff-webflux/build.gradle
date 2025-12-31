@@ -1,0 +1,45 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+configurations {
+    agent
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+    implementation(platform(SpringBootPlugin.BOM_COORDINATES))
+    implementation("io.opentelemetry:opentelemetry-api")
+
+    //spring modules
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    agent "io.opentelemetry.javaagent:opentelemetry-javaagent:2.23.0"
+}
+
+tasks.register('copyAgent', Copy) {
+    from configurations.agent.singleFile
+    into layout.buildDirectory.dir('agent')
+    rename("opentelemetry-javaagent-.*\\.jar", "opentelemetry-javaagent.jar")
+}
+
+
+tasks.named('bootJar', BootJar) {
+    dependsOn tasks.named('copyAgent')
+    archiveFileName = 'app.jar'
+}

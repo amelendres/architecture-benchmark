@@ -1,0 +1,50 @@
+name: Architecture Benchmark - Percentile Regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Java 21
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        cache: 'gradle'
+
+    - name: Run Gradle build
+      run: |
+        chmod +x ./gradlew || true
+        ./gradlew build --no-daemon
+
+    - name: Build images
+      run: docker compose -f compose.grpc.yaml build
+
+    - name: Start stack
+      run: docker compose -f compose.grpc.yaml up -d
+
+    - name: Warm up
+      run: sleep 20
+
+    - name: gRPC benchmark
+      run: bash benchmarks/grpc.sh
+
+    - name: gRPC percentile regression
+      run: |
+        python3 benchmarks/compare_percentiles.py \
+          benchmarks/baseline/grpc.json \
+          results/grpc.json
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: perf-results
+        path: results/

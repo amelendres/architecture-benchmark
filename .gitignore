@@ -1,0 +1,16 @@
+.idea
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+bin
+# Temporary disable app
+app
+
+# docker data
+var
+
+# benchmark results
+benchmarks/results/**

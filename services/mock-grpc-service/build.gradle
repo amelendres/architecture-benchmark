@@ -1,0 +1,72 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.google.protobuf' version '0.9.5'
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+configurations {
+    agent
+}
+repositories {
+  mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', "2025.1.0")
+    set('springGrpcVersion', "1.0.0")
+}
+dependencies {
+    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    //otel
+//    implementation("io.opentelemetry:opentelemetry-api")
+//    agent "io.opentelemetry.javaagent:opentelemetry-javaagent:2.23.0"
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.grpc:spring-grpc-dependencies:${springGrpcVersion}"
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {
+                option '@generated=omit'
+            }
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+//tasks.register('copyAgent', Copy) {
+//    from configurations.agent.singleFile
+//    into layout.buildDirectory.dir('agent')
+//    rename("opentelemetry-javaagent-.*\\.jar", "opentelemetry-javaagent.jar")
+//}
+
+
+tasks.named('bootJar', BootJar) {
+//    dependsOn tasks.named('copyAgent')
+    archiveFileName = 'app.jar'
+}

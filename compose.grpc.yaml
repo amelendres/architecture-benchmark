@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  user:
+    build: services/mock-grpc-service
+    container_name: user
+    ports: ["50051"]
+
+  order:
+    build: services/mock-grpc-service
+    container_name: order
+    ports: ["50051"]
+
+  notification:
+    build: services/mock-grpc-service
+    container_name: notification
+    ports: ["50051"]
+
+  bff-grpc:
+    build: services/bff-grpc
+    ports: ["9090:9090"]
+    environment:
+      - GRPC_SERVICE_PORT=9900
+      - SPRING_GRPC_CLIENT_CHANNELS_USER_ADDRESS=user:50051
+      - SPRING_GRPC_CLIENT_CHANNELS_ORDER_ADDRESS=order:50051
+      - SPRING_GRPC_CLIENT_CHANNELS_NOTIFICATION_ADDRESS=notification:50051
+#    depends_on: [user, order, notification]

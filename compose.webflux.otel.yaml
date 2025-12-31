@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  user:
+    build:
+      context: services/mock-http-service
+      dockerfile: otel.Dockerfile
+    container_name: user_webflux
+    ports:
+      - "8083:8080"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"
+
+  order:
+    build:
+      context: services/mock-http-service
+      dockerfile: otel.Dockerfile
+    container_name: order_webflux
+    ports:
+      - "8084:8080"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"
+
+  notification:
+    build:
+      context: services/mock-http-service
+      dockerfile: otel.Dockerfile
+    container_name: notification_webflux
+    ports:
+      - "8085:8080"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"
+
+  bff-webflux:
+    build:
+      context: services/bff-webflux
+      dockerfile: otel.Dockerfile
+    ports: ["8081:8080"]
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"
+#    depends_on: [user, order, notification, otel-lgtm]
+
+  otel-lgtm:
+    image: grafana/otel-lgtm
+#    mem_limit: 4g
+#    cpus: 4.0
+    ports: ["3000:3000", "4317:4317", "4318:4318"]
+    volumes:
+      - ./var/otel-data:/data

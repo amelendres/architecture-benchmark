@@ -1,0 +1,43 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.example.bffgrpc.proto";
+option java_outer_classname = "DashboardProto";
+
+//package dashboard.v1;
+
+service DashboardService {
+  rpc GetDashboard (DashboardRequest) returns (DashboardResponse);
+}
+
+message DashboardRequest {
+  string user_id = 1;
+}
+
+message DashboardResponse {
+  string user = 1;
+  string orders = 2;
+  string notifications = 3;
+}
+
+
+
+// Order proto
+message Order {
+  string id = 1;
+  double total = 2;
+}
+
+
+// User proto
+message User {
+  string id = 1;
+  string name = 2;
+}
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (User);
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
