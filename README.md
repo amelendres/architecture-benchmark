@@ -104,13 +104,19 @@ Inside the container execute:
 
 
 ### OTEL
-Start
+Webflux
 ```shell
 docker compose -f compose.webflux.otel.yaml up
 
 http :8081/dashboard
 ```
 
+gRPC
+```shell
+docker compose -f compose.grpc.otel.yaml up
+
+http :8081/dashboard
+```
 ## Resurces
 
 [Docker OpenTelemetry](https://grafana.com/docs/opentelemetry/docker-lgtm/)

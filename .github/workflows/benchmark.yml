@@ -50,13 +50,15 @@ jobs:
         rm -rf /tmp/wrk2 /tmp/ghz.tar.gz
 
     - name: gRPC benchmark
-      run: bash benchmarks/grpc.sh
-
+      run: |
+        bash benchmarks/grpc.sh 5000 200 10
+        bash benchmarks/grpc.sh 5000 200 30
+ 
     - name: gRPC percentile regression
       run: |
         python3 benchmarks/compare_percentiles.py \
           benchmarks/baseline/grpc.json \
-          benchmarks/results/grpc.json
+          benchmarks/results/grpc-5000rps-200-30s-8cpus.json
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4

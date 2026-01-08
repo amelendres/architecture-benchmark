@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  user:
+    build: 
+      context: services/mock-grpc-service
+      dockerfile: otel.Dockerfile  
+    container_name: user
+    ports: ["50051"]
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"
+
+  order:
+    build: 
+      context: services/mock-grpc-service
+      dockerfile: otel.Dockerfile  
+    container_name: order
+    ports: ["50051"]
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"    
+
+  notification:
+    build: 
+      context: services/mock-grpc-service
+      dockerfile: otel.Dockerfile      
+    container_name: notification
+    ports: ["50051"]
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"    
+
+  bff-grpc:
+    build: 
+      context: services/bff-grpc
+      dockerfile: otel.Dockerfile
+    ports: ["9090:9090"]
+    # depends_on: [user, order, notification]
+    environment:
+      GRPC_SERVICE_PORT: 9900
+      SPRING_GRPC_CLIENT_CHANNELS_USER_ADDRESS: user:50051
+      SPRING_GRPC_CLIENT_CHANNELS_ORDER_ADDRESS: order:50051
+      SPRING_GRPC_CLIENT_CHANNELS_NOTIFICATION_ADDRESS: notification:50051
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-lgtm:4318"    
+
+  otel-lgtm:
+    image: grafana/otel-lgtm
+    ports: ["3000:3000", "4317:4317", "4318:4318"]
+    volumes:
+      - ./var/otel-data:/data
