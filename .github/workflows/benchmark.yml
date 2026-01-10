@@ -35,14 +35,19 @@ jobs:
     - name: Install benchmark tools (ghz, jq, wrk2)
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl wget unzip
+        sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl
+
         # install ghz
         GHZ_URL=$(curl -s https://api.github.com/repos/bojand/ghz/releases/latest | jq -r '.assets[] | select(.name|test("linux.*(amd64|x86_64)|linux_amd64")) | .browser_download_url' | head -n1)
         if [ -n "$GHZ_URL" ]; then
           curl -sL "$GHZ_URL" -o /tmp/ghz.tar.gz
           tar -xzf /tmp/ghz.tar.gz -C /tmp || true
           if [ -x /tmp/ghz ]; then sudo mv /tmp/ghz /usr/local/bin/ghz && sudo chmod +x /usr/local/bin/ghz; fi
+        else
+          echo "Failed to get ghz download URL" >&2
+          exit 1
         fi
+
         # build wrk2 (provides wrk)
         git clone --depth 1 https://github.com/giltene/wrk2.git /tmp/wrk2
         (cd /tmp/wrk2 && make)
