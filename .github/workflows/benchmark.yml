@@ -56,9 +56,10 @@ jobs:
  
     - name: gRPC percentile regression
       run: |
-        python3 benchmarks/compare_percentiles.py \
-          benchmarks/baseline/grpc.json \
-          benchmarks/results/grpc-5000rps-200-30s-8cpus.json
+        cd benchmarks
+        python3 compare_percentiles.py \
+          baseline/grpc.json \
+          results/grpc-5000rps-200-30s-8cpus.json
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4

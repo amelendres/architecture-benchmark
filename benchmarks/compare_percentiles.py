@@ -1,7 +1,10 @@
 import json, sys
 
-BASE = json.load(open(sys.argv[1]))
-CURR = json.load(open(sys.argv[2]))
+BASE_JSON = sys.argv[1]
+CURR_JSON = sys.argv[2]
+
+BASE = json.load(open(BASE_JSON))
+CURR = json.load(open(CURR_JSON))
 
 # Percentile comparison
 THRESHOLD = 1.10  # 10% regression allowed
