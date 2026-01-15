@@ -4,20 +4,22 @@ FROM ubuntu:22.04
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     build-essential \
-    libreadline-dev \
-    curl \
-    unzip \
-    git \
     libssl-dev \
     libz-dev \
-    wget
+    libreadline-dev \
+    git jq curl unzip
+    
+    # doesn't work git clone wrk2
+    # DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 
-# Install Lua 5.3
-RUN wget https://www.lua.org/ftp/lua-5.3.5.tar.gz && \
-    tar -zxf lua-5.3.5.tar.gz && \
-    cd lua-5.3.5 && \
+
+# Install Lua 5.1
+RUN curl -R -O https://lua.org/ftp/lua-5.1.5.tar.gz && \
+    tar -zxf lua-5.1.5.tar.gz && \
+    cd lua-5.1.5 && \
     make linux test && \
     make install
+    
 
 # Install LuaRocks
 RUN curl -R -O https://luarocks.github.io/luarocks/releases/luarocks-3.5.0.tar.gz && \
@@ -26,11 +28,14 @@ RUN curl -R -O https://luarocks.github.io/luarocks/releases/luarocks-3.5.0.tar.g
     ./configure && \
     make bootstrap
 
+RUN luarocks install lua-cjson
+
 # Clone and build wrk2 (ARM64 compatible fork)
 RUN git clone https://github.com/AmpereTravis/wrk2-aarch64.git wrk2 && \
     cd wrk2 && \
     make && \
     cp wrk /usr/local/bin/
+
 
 # Set working directory
 WORKDIR /wrk2

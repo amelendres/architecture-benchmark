@@ -6,7 +6,8 @@ on:
     branches: [main]
 
 jobs:
-  benchmark:
+  benchmark-grpc:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -25,14 +26,10 @@ jobs:
         chmod +x ./gradlew || true
         ./gradlew build --no-daemon
 
-    # - name: Build images
-    #   run: docker compose -f compose.grpc.yaml build
-
     - name: Start stack
       run: docker compose -f compose.grpc.yaml up -d
 
-
-    - name: Install benchmark tools (ghz, jq, wrk2)
+    - name: Install benchmark tools (ghz, jq)
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl
@@ -48,15 +45,9 @@ jobs:
           exit 1
         fi
 
-        # build wrk2 (provides wrk)
-        git clone --depth 1 https://github.com/giltene/wrk2.git /tmp/wrk2
-        (cd /tmp/wrk2 && make)
-        sudo mv /tmp/wrk2/wrk /usr/local/bin/wrk
-        rm -rf /tmp/wrk2 /tmp/ghz.tar.gz
-
     - name: gRPC benchmark
       run: |
-        bash benchmarks/grpc.sh 5000 200 10
+        bash benchmarks/grpc.sh 5000 200 25
         bash benchmarks/grpc.sh 5000 200 30
  
     - name: gRPC percentile regression
@@ -64,10 +55,72 @@ jobs:
         cd benchmarks
         python3 compare_percentiles.py \
           baseline/grpc.json \
-          results/grpc-5000rps-200-30s-8cpus.json
+          results/grpc-5000rps-200-30s-6cpus.json
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
       with:
         name: benchmark-results
         path: benchmarks/results/
+
+    
+  benchmark-webflux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Java 21
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+        cache: 'gradle'
+
+    - name: Run Gradle build
+      run: |
+        chmod +x ./gradlew || true
+        ./gradlew build --no-daemon
+
+    - uses: leafo/gh-actions-lua@v12
+      with:
+        luaVersion: "5.1.5"
+
+    - uses: leafo/gh-actions-luarocks@v4
+
+    - name: Install benchmark tools (jq, wrk2)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl
+        
+        luarocks install lua-cjson
+        
+        # build wrk2 (provides wrk)
+        git clone --depth 1 https://github.com/giltene/wrk2.git /tmp/wrk2
+        (cd /tmp/wrk2 && make)
+        sudo mv /tmp/wrk2/wrk /usr/local/bin/wrk
+        rm -rf /tmp/wrk2 /tmp/ghz.tar.gz
+
+    - name: Start stack
+      run: docker compose -f compose.webflux.yaml up -d
+
+    - name: Webflux benchmark
+      run: |
+        cd benchmarks
+        bash webflux.sh 5000 200 25
+        bash webflux.sh 5000 200 30
+ 
+    - name: Webflux percentile regression
+      run: |
+        cd benchmarks
+        python3 compare_percentiles.py \
+          baseline/http-webflux.json \
+          results/http-webflux-5000rps-200-30s-6cpus.json
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: benchmarks/results/
+

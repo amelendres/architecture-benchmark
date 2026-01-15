@@ -13,6 +13,6 @@ echo "Run: docker build -t wrk2-arm64 ."
 exit 1
 fi
 # Run wrk2 in Docker container
-#docker run -v .:/wrk2/ --network=bff-benchmark_default --name wrk2 --rm wrk2-arm64 "$@"
-docker run -v .:/wrk2/ --network=bff-benchmark_default --name wrk2 --rm -it wrk2-arm64 bash
+#docker run -v .:/wrk2/ --network=architecture-benchmark_default --name wrk2 --rm wrk2-arm64 "$@"
+docker run -v .:/wrk2/ --network=architecture-benchmark_default --name wrk2 --rm -it wrk2-arm64 bash
 

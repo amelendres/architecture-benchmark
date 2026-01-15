@@ -89,7 +89,7 @@ Benchmarks:\
 * [Install wrk2](./benchmarks/README.md)
 ```shell
 docker build -t wrk2-arm64 benchmarks
-docker run -v ./benchmarks:/wrk2/ --network=bff-benchmark_default --name wrk2 --rm -it wrk2-arm64 bash
+docker run -v ./benchmarks:/wrk2/ --network=architecture-benchmark_default --name wrk2 --rm -it wrk2-arm64 bash
 ```
 
 Inside the container execute:
