@@ -42,10 +42,11 @@ Each downstream service adds a fixed 5ms latency.
 ## Requirements
 - Docker
 - Docker Compose
-- wrk2
-- ghz
-- jq
+- [jq](https://github.com/jqlang/jq?tab=readme-ov-file#installation)
+- [fortio](https://github.com/fortio/fortio?tab=readme-ov-file#installation)
 - python
+- [grpcurl](https://grpcurl.com/)
+- [httpie](https://httpie.io/)
 
 ## How to Run - local
 Build:
@@ -67,6 +68,7 @@ grpcurl -d '{"user_id":"1"}' -plaintext localhost:9090 DashboardService.GetDashb
 ```
 
 ## How to Run - Docker
+
 ### gRPC
 Start
 ```shell
@@ -84,17 +86,6 @@ Start
 docker compose -f compose.webflux.yaml up
 
 http :8081/dashboard
-```
-Benchmarks:\
-* [Install wrk2](./benchmarks/README.md)
-```shell
-docker build -t wrk2-arm64 benchmarks
-docker run -v ./benchmarks:/wrk2/ --network=architecture-benchmark_default --name wrk2 --rm -it wrk2-arm64 bash
-```
-
-Inside the container execute:
-```shell
-./webflux.sh
 ```
 
 ### graphQL
@@ -117,6 +108,30 @@ docker compose -f compose.grpc.otel.yaml up
 
 http :8081/dashboard
 ```
+
+## Benchmarks Runner
+Fortio UI:
+
+```shell
+# start fortio server
+docker run --network=architecture-benchmark_default -p 8080:8080 -p 8079:8079 fortio/fortio server
+```
+Open [fortio ui](http://localhost:8080/fortio) and run the load to test
+* grpc: http://bff-grpc:8080/dashboard
+* webflux: http://bff-webflux:8080/dashboard
+
+
+Terminal:
+```shell
+#fortio load -logger-force-color -qps 5000 -c 6 -t 30s -nocatchup -uniform  http://localhost:8081/dashboard
+cd benchmark
+./benchmark.sh http-webflux localhost:8081 1000 10 6
+./benchmark.sh http-webflux localhost:8081 5000 20 6
+
+./benchmark.sh grpc localhost:9090 1000 10 6 10
+./benchmark.sh grpc localhost:9090 5000 20 6 100
+```
+
 ## Resurces
 
 [Docker OpenTelemetry](https://grafana.com/docs/opentelemetry/docker-lgtm/)

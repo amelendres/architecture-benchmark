@@ -29,33 +29,26 @@ jobs:
     - name: Start stack
       run: docker compose -f compose.grpc.yaml up -d
 
-    - name: Install benchmark tools (ghz, jq)
+    - name: Install benchmark tools (jq, fortio)
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl
-
-        # install ghz
-        GHZ_URL=$(curl -s https://api.github.com/repos/bojand/ghz/releases/latest | jq -r '.assets[] | select(.name|test("linux.*(amd64|x86_64)|linux_amd64")) | .browser_download_url' | head -n1)
-        if [ -n "$GHZ_URL" ]; then
-          curl -sL "$GHZ_URL" -o /tmp/ghz.tar.gz
-          tar -xzf /tmp/ghz.tar.gz -C /tmp || true
-          if [ -x /tmp/ghz ]; then sudo mv /tmp/ghz /usr/local/bin/ghz && sudo chmod +x /usr/local/bin/ghz; fi
-        else
-          echo "Failed to get ghz download URL" >&2
-          exit 1
-        fi
+        
+        bash benchmarks/install-fortio.sh
+        fortio version 
 
     - name: gRPC benchmark
       run: |
-        bash benchmarks/grpc.sh 5000 200 25
-        bash benchmarks/grpc.sh 5000 200 30
+        cd benchmarks
+        bash benchmark.sh grpc localhost:9090 1000 10 6 10
+        bash benchmark.sh grpc localhost:9090 5000 20 6 100
  
     - name: gRPC percentile regression
       run: |
         cd benchmarks
         python3 compare_percentiles.py \
           baseline/grpc.json \
-          results/grpc-5000rps-200-30s-6cpus.json
+          results/grpc-5000qps-20s-6c-100streams.json
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
@@ -83,40 +76,29 @@ jobs:
         chmod +x ./gradlew || true
         ./gradlew build --no-daemon
 
-    - uses: leafo/gh-actions-lua@v12
-      with:
-        luaVersion: "5.1.5"
-
-    - uses: leafo/gh-actions-luarocks@v4
-
-    - name: Install benchmark tools (jq, wrk2)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends jq git build-essential libssl-dev curl
-        
-        luarocks install lua-cjson
-        
-        # build wrk2 (provides wrk)
-        git clone --depth 1 https://github.com/giltene/wrk2.git /tmp/wrk2
-        (cd /tmp/wrk2 && make)
-        sudo mv /tmp/wrk2/wrk /usr/local/bin/wrk
-        rm -rf /tmp/wrk2 /tmp/ghz.tar.gz
-
     - name: Start stack
       run: docker compose -f compose.webflux.yaml up -d
+
+    - name: Install benchmark tools (jq, fortio)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends jq libssl-dev curl
+        
+        bash benchmarks/install-fortio.sh
+        fortio version
 
     - name: Webflux benchmark
       run: |
         cd benchmarks
-        bash webflux.sh 5000 200 25
-        bash webflux.sh 5000 200 30
+        bash benchmark.sh http-webflux localhost:8081 1000 10 6
+        bash benchmark.sh http-webflux localhost:8081 5000 20 6
  
     - name: Webflux percentile regression
       run: |
         cd benchmarks
         python3 compare_percentiles.py \
           baseline/http-webflux.json \
-          results/http-webflux-5000rps-200-30s-6cpus.json
+          results/http-webflux-5000qps-20s-6c.json
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4

@@ -18,5 +18,5 @@ def check(p):
         sys.exit(1)
     print(f"✅ {p} OK: {b}ms → {c}ms (max {max:.2f}ms with {TP:.0f}% threshold)") 
 
-for p in ("p95", "p99"):
+for p in ("p90", "p99"):
     check(p)
