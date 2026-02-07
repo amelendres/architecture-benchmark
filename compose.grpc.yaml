@@ -18,10 +18,17 @@ services:
 
   bff-grpc:
     build: services/bff-grpc
+    container_name: bff-grpc
     ports: ["9090:9090"]
     environment:
       - GRPC_SERVICE_PORT=9900
       - SPRING_GRPC_CLIENT_CHANNELS_USER_ADDRESS=user:50051
       - SPRING_GRPC_CLIENT_CHANNELS_ORDER_ADDRESS=order:50051
       - SPRING_GRPC_CLIENT_CHANNELS_NOTIFICATION_ADDRESS=notification:50051
-#    depends_on: [user, order, notification]
+    depends_on: [user, order, notification]
+    healthcheck:
+      test: /bin/grpc_health_probe -addr=:9090
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s # Time to wait for app to start

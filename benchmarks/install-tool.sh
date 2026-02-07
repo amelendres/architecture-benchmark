@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-USER=${1:-"fortio"}
-REPO=${2:-"fortio"}
+USER=${1:-"bojand"} #fortio
+REPO=${2:-"ghz"} #fortio
+PATH=${3:-""} #usr/bin/
 REPO_URL=${1:-"https://api.github.com/repos/$USER/$REPO/releases/latest"}
 TOOL=$REPO
 
@@ -13,7 +14,7 @@ if [ -n "$PACKAGE_URL" ]; then
     echo "Downloading '$PACKAGE_URL'"
     wget --output-document=/tmp/$TOOL.tgz --quiet "$PACKAGE_URL"
     tar -xzf /tmp/$TOOL.tgz -C /tmp || true
-    if [ -x /tmp/usr/bin/$TOOL ]; then sudo mv /tmp/usr/bin/$TOOL /usr/local/bin/$TOOL && sudo chmod +x /usr/local/bin/$TOOL; fi
+    if [ -x /tmp/$PATH$TOOL ]; then sudo mv /tmp/$PATH$TOOL /usr/local/bin/$TOOL && sudo chmod +x /usr/local/bin/$TOOL; fi
 else
     echo "Failed to get '$PACKAGE_URL' from '$REPO_URL'" >&2
     exit 1

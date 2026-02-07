@@ -14,7 +14,7 @@ def check(p):
     c = CURR[p]
     max = b * THRESHOLD
     if c > max:
-        print(f"❌ {b} regression: {b}ms → {c}ms (max {max:.2f}ms with {TP:.0f}% threshold)")
+        print(f"❌ {p}: {b} regression: {b}ms → {c}ms (max {max:.2f}ms with {TP:.0f}% threshold)")
         sys.exit(1)
     print(f"✅ {p} OK: {b}ms → {c}ms (max {max:.2f}ms with {TP:.0f}% threshold)") 
 

@@ -1,5 +1,3 @@
-import org.springframework.boot.gradle.tasks.bundling.BootJar
-
 plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.1'
@@ -57,16 +55,4 @@ protobuf {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-//tasks.register('copyAgent', Copy) {
-//    from configurations.agent.singleFile
-//    into layout.buildDirectory.dir('agent')
-//    rename("opentelemetry-javaagent-.*\\.jar", "opentelemetry-javaagent.jar")
-//}
-
-
-tasks.named('bootJar', BootJar) {
-//    dependsOn tasks.named('copyAgent')
-    archiveFileName = 'app.jar'
 }
