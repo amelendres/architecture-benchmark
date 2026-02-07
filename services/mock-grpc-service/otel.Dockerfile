@@ -6,7 +6,7 @@ WORKDIR /usr/src/app/
 
 COPY --from=agent --chown=cnb /javaagent.jar /app/javaagent.jar
 ENV JAVA_TOOL_OPTIONS=-javaagent:/app/javaagent.jar
-COPY build/libs/app.jar app.jar
+COPY build/libs/*.jar app.jar
 
 EXPOSE 50051
 ENTRYPOINT [ "java", "-jar", "app.jar" ]

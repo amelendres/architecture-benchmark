@@ -7,9 +7,11 @@ REPO_URL=${1:-"https://api.github.com/repos/$USER/$REPO/releases/latest"}
 TOOL=$REPO
 
 # install
-PACKAGE_URL=$(curl -s $REPO_URL | jq -r '.assets[] | select(.name|test("linux.*(amd64|x86_64)|linux_amd64")) | .browser_download_url' | head -n1)
+PACKAGE_URL=$(wget --output-document - --quiet $REPO_URL | jq -r '.assets[] | select(.name|test("linux.*(amd64|x86_64)|linux_amd64")) | .browser_download_url' | head -n1)
+
 if [ -n "$PACKAGE_URL" ]; then
-    curl -sL "$PACKAGE_URL" -o /tmp/$TOOL.tgz
+    echo "Downloading '$PACKAGE_URL'"
+    wget --output-document=/tmp/$TOOL.tgz --quiet "$PACKAGE_URL"
     tar -xzf /tmp/$TOOL.tgz -C /tmp || true
     if [ -x /tmp/usr/bin/$TOOL ]; then sudo mv /tmp/usr/bin/$TOOL /usr/local/bin/$TOOL && sudo chmod +x /usr/local/bin/$TOOL; fi
 else
