@@ -49,7 +49,7 @@ jobs:
       - name: Install benchmark tools (fortio)
         shell: bash
         run: |
-          benchmarks/install-tool.sh fortio fortio usr/bin/
+          bash benchmarks/install-tool.sh fortio fortio usr/bin/
           fortio version
 
       - name: gRPC benchmark
@@ -59,12 +59,12 @@ jobs:
 
           cd benchmarks
           bash healthcheck.sh grpc
-          bash benchmark.sh grpc localhost:9090 1000 10 4 2
-          bash benchmark.sh grpc localhost:9090 5000 20 4 2
+          bash benchmark.sh grpc localhost:9090 1000 10 4 10
+          bash benchmark.sh grpc localhost:9090 5000 20 4 4
 
           python3 compare_percentiles.py \
             baseline/grpc.json \
-            results/grpc-5000qps-20s-4c-2streams.json
+            results/grpc-5000qps-20s-4c-4streams.json
 
       - name: Upload gRPC benchmark results
         uses: actions/upload-artifact@v4
@@ -84,11 +84,11 @@ jobs:
           name: services
           path: services
         
-      - name: Install benchmark tools (fortio)
+      - name: Install benchmark tools (ghz)
         shell: bash
         run: |
-          benchmarks/install-tool.sh bojand ghz
-          fortio version
+          bash benchmarks/install-tool.sh bojand ghz
+          ghz --version
 
       - name: gRPC benchmark
         shell: bash
@@ -97,12 +97,12 @@ jobs:
 
           cd benchmarks
           bash healthcheck.sh grpc
-          bash grpc.sh grpc localhost:9090 1000 10 4 20
-          bash grpc.sh grpc localhost:9090 5000 20 4 40
+          bash grpc.sh 1000 10 4 8
+          bash grpc.sh 5000 20 4 8
 
           python3 compare_percentiles.py \
             baseline/grpc.json \
-            results/grpc_ghz-5000qps-20s-4cnx-40c_4cpus.json
+            results/grpc_ghz-5000qps-20s-4cnx-8c-4cpus.json
 
       - name: Upload gRPC benchmark results
         uses: actions/upload-artifact@v4
@@ -112,7 +112,7 @@ jobs:
 
   benchmark-webflux:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -123,9 +123,8 @@ jobs:
           path: services
       
       - name: Install benchmark tools (fortio)
-        shell: bash
         run: |
-          benchmarks/install-tool.sh fortio fortio usr/bin/
+          bash benchmarks/install-tool.sh fortio fortio usr/bin/
           fortio version
     
       - name: Webflux benchmark

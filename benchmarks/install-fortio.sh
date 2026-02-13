@@ -3,7 +3,8 @@ set -euo pipefail
 
 USER=${1:-"fortio"}
 REPO=${2:-"fortio"}
-REPO_URL=${1:-"https://api.github.com/repos/$USER/$REPO/releases/latest"}
+
+REPO_URL="https://api.github.com/repos/$USER/$REPO/releases/latest"
 TOOL=$REPO
 
 # install

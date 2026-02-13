@@ -2,9 +2,10 @@
 set -euo pipefail
 
 USER=${1:-"bojand"} #fortio
-REPO=${2:-"ghz"} #fortio
-PATH=${3:-""} #usr/bin/
-REPO_URL=${1:-"https://api.github.com/repos/$USER/$REPO/releases/latest"}
+REPO=${2:-"ghz"}    #fortio
+TMP_TARGET=${3:-""} #usr/bin/
+
+REPO_URL="https://api.github.com/repos/$USER/$REPO/releases/latest"
 TOOL=$REPO
 
 # install
@@ -14,7 +15,7 @@ if [ -n "$PACKAGE_URL" ]; then
     echo "Downloading '$PACKAGE_URL'"
     wget --output-document=/tmp/$TOOL.tgz --quiet "$PACKAGE_URL"
     tar -xzf /tmp/$TOOL.tgz -C /tmp || true
-    if [ -x /tmp/$PATH$TOOL ]; then sudo mv /tmp/$PATH$TOOL /usr/local/bin/$TOOL && sudo chmod +x /usr/local/bin/$TOOL; fi
+    if [ -x /tmp/$TMP_TARGET$TOOL ]; then sudo mv /tmp/$TMP_TARGET$TOOL /usr/local/bin/$TOOL && sudo chmod +x /usr/local/bin/$TOOL; fi
 else
     echo "Failed to get '$PACKAGE_URL' from '$REPO_URL'" >&2
     exit 1
