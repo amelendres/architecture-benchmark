@@ -23,7 +23,7 @@ RESULTS=./results/$FILENAME.json
 mkdir -p results
 
 case $TYPE in 
-    "http-webflux") 
+    "http_webflux") 
         fortio load -qps $RPS -c $CONCURRENY -t ${DURATION}s -json $RAW -nocatchup -uniform $HOST/dashboard
         ;;  
     "grpc") 

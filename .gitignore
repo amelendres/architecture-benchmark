@@ -13,4 +13,4 @@ app
 var
 
 # benchmark results
-benchmarks/results/**
+benchmarks/results*

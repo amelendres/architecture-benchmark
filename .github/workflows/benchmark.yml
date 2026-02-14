@@ -59,12 +59,12 @@ jobs:
 
           cd benchmarks
           bash healthcheck.sh grpc
-          bash benchmark.sh grpc localhost:9090 1000 10 4 10
-          bash benchmark.sh grpc localhost:9090 5000 20 4 4
+          bash benchmark.sh grpc localhost:9090 1000 10 4 5
+          bash benchmark.sh grpc localhost:9090 5000 20 4 5
 
           python3 compare_percentiles.py \
             baseline/grpc.json \
-            results/grpc-5000qps-20s-4c-4streams.json
+            results/grpc-5000qps-20s-4c-5streams.json
 
       - name: Upload gRPC benchmark results
         uses: actions/upload-artifact@v4
@@ -72,7 +72,7 @@ jobs:
           name: grpc-results
           path: benchmarks/results/
 
-  benchmark-grpc-ghz:
+  benchmark-grpc_ghz:
     needs: setup
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -97,20 +97,20 @@ jobs:
 
           cd benchmarks
           bash healthcheck.sh grpc
-          bash grpc.sh 1000 10 4 8
-          bash grpc.sh 5000 20 4 8
+          bash grpc.sh 1000 10 4 20
+          bash grpc.sh 5000 20 4 20
 
           python3 compare_percentiles.py \
             baseline/grpc.json \
-            results/grpc_ghz-5000qps-20s-4cnx-8c-4cpus.json
+            results/grpc_ghz-5000qps-20s-4cnx-20c-4cpus.json
 
       - name: Upload gRPC benchmark results
         uses: actions/upload-artifact@v4
         with:
-          name: grpc-ghz-results
+          name: grpc_ghz-results
           path: benchmarks/results/
 
-  benchmark-webflux:
+  benchmark-http_webflux:
     needs: setup
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -134,15 +134,51 @@ jobs:
 
           cd benchmarks
           bash healthcheck.sh webflux
-          bash benchmark.sh http-webflux localhost:8081 1000 10 8
-          bash benchmark.sh http-webflux localhost:8081 5000 20 8
+          bash benchmark.sh http_webflux localhost:8081 1000 10 20
+          bash benchmark.sh http_webflux localhost:8081 5000 20 20
 
           python3 compare_percentiles.py \
-            baseline/http-webflux.json \
-            results/http-webflux-5000qps-20s-8c.json
+            baseline/http_webflux.json \
+            results/http_webflux-5000qps-20s-20c.json
 
       - name: Upload Webflux benchmark results
         uses: actions/upload-artifact@v4
         with:
-          name: webflux-results
+          name: http_webflux-results
           path: benchmarks/results/
+
+  summary:
+    needs: [benchmark-grpc, benchmark-grpc_ghz, benchmark-http_webflux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download gRPC results
+        uses: actions/download-artifact@v4
+        with:
+          name: grpc-results
+          path: benchmarks/results/grpc
+
+      - name: Download gRPC (ghz) results
+        uses: actions/download-artifact@v4
+        with:
+          name: grpc_ghz-results
+          path: benchmarks/results/grpc_ghz
+
+      - name: Download Webflux results
+        uses: actions/download-artifact@v4
+        with:
+          name: http_webflux-results
+          path: benchmarks/results/http_webflux
+
+      - name: Generate summary
+        run: |
+          cd benchmarks
+          python3 summary.py results/ results/summary-5000.md
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-summary
+          path: benchmarks/results/summary*.md
