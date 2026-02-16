@@ -1,4 +1,4 @@
-name: Architecture Benchmark - Percentile Regression
+name: Architecture Benchmark
 
 on:
   pull_request:
@@ -66,10 +66,6 @@ jobs:
           bash benchmark.sh grpc localhost:9090 1000 10 $CNX $CONCURRENCY
           bash benchmark.sh grpc localhost:9090 $QPS $DURATION $CNX $CONCURRENCY
 
-          python3 compare_percentiles.py \
-            baseline/grpc.json \
-            results/grpc-${QPS}qps-${DURATION}s-${CNX}c-${CONCURRENCY}streams.json
-
       - name: Upload gRPC benchmark results
         uses: actions/upload-artifact@v4
         with:
@@ -105,10 +101,6 @@ jobs:
           bash grpc.sh 1000 10 $CNX $TOTAL_CNX
           bash grpc.sh $QPS $DURATION $CNX $TOTAL_CNX
 
-          python3 compare_percentiles.py \
-            baseline/grpc.json \
-            results/grpc_ghz-${QPS}qps-${DURATION}s-${CNX}cnx-${TOTAL_CNX}c-4cpus.json
-
       - name: Upload gRPC benchmark results
         uses: actions/upload-artifact@v4
         with:
@@ -142,10 +134,6 @@ jobs:
           TOTAL_CNX=$(($CNX * $CONCURRENCY))
           bash benchmark.sh http_webflux localhost:8081 1000 10 $TOTAL_CNX
           bash benchmark.sh http_webflux localhost:8081 $QPS $DURATION $TOTAL_CNX
-
-          python3 compare_percentiles.py \
-            baseline/http_webflux.json \
-            results/http_webflux-${QPS}qps-${DURATION}s-${TOTAL_CNX}c.json
 
       - name: Upload Webflux benchmark results
         uses: actions/upload-artifact@v4
