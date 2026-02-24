@@ -32,6 +32,11 @@ case $TYPE in
                 -qps $RPS -c $CONCURRENY -s $STREAM -t ${DURATION}s \
                 -json $RAW -nocatchup -uniform $HOST
                 ;;
+    "graphql")        
+        fortio load -qps $RPS -c $CONCURRENY -t ${DURATION}s \
+                -json $RAW -nocatchup -uniform \
+                -H 'Content-Type: application/json' -payload '{"query": "query { dashboard {notifications orders user } }" }' http://$HOST/graphql
+                ;;
     *)
         echo "Unknown TYPE: $TYPE"
         exit 1 

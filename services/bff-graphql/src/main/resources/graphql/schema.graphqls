@@ -1,0 +1,10 @@
+
+type Query {
+  dashboard: Dashboard
+}
+
+type Dashboard {
+  user: String
+  orders: String
+  notifications: String
+}

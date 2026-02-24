@@ -141,8 +141,42 @@ jobs:
           name: http_webflux-results
           path: benchmarks/results/
 
+  benchmark-graphql:
+    needs: setup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: services
+          path: services
+      
+      - name: Install benchmark tools (fortio)
+        run: |
+          bash benchmarks/install-tool.sh fortio fortio usr/bin/
+          fortio version
+    
+      - name: GraphQL benchmark
+        shell: bash
+        run: |
+          docker compose -f compose.graphql.yaml up -d
+
+          cd benchmarks
+          bash healthcheck.sh graphql
+          TOTAL_CNX=$(($CNX * $CONCURRENCY))
+          bash benchmark.sh graphql localhost:8081 1000 10 $TOTAL_CNX
+          bash benchmark.sh graphql localhost:8081 $QPS $DURATION $TOTAL_CNX
+
+      - name: Upload GraphQL benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphql-results
+          path: benchmarks/results/
+
   summary:
-    needs: [benchmark-grpc, benchmark-grpc_ghz, benchmark-http_webflux]
+    needs: [benchmark-grpc, benchmark-grpc_ghz, benchmark-http_webflux, benchmark-graphql]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -165,6 +199,12 @@ jobs:
         with:
           name: http_webflux-results
           path: benchmarks/results/http_webflux
+
+      - name: Download GraphQL results
+        uses: actions/download-artifact@v4
+        with:
+          name: graphql-results
+          path: benchmarks/results/graphql
 
       - name: Generate summary
         run: |

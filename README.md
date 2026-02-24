@@ -7,20 +7,6 @@ Benchmark of different microservices patterns
 * gRPC
 * GraphQL
 
-Here an example for gRPC
-```md
-Frontend (HTTP/JSON)
-   |
-   v
-API Gateway (HTTP → gRPC)
-   |
-   v
-gRPC BFF (Java)
-   |
-   |--> User Service (gRPC)
-   |--> Order Service (gRPC)
-   |--> Notification Service (gRPC)
-```
 
 # BFF Benchmark: GraphQL vs WebFlux vs gRPC
 
@@ -44,9 +30,9 @@ Each downstream service adds a fixed 5ms latency.
 - Docker Compose
 - [jq](https://github.com/jqlang/jq?tab=readme-ov-file#installation)
 - [fortio](https://github.com/fortio/fortio?tab=readme-ov-file#installation)
-- python
 - [grpcurl](https://grpcurl.com/)
 - [httpie](https://httpie.io/)
+- python
 
 ## How to Run - local
 Build:
@@ -54,7 +40,7 @@ Build:
 ./gradlew build
 ```
 
-Start:
+gRPC:
 ```shell
 ./gradlew services:bff-grpc:bootRun services:mock-grpc-service:bootRun
 ```
@@ -67,6 +53,14 @@ grpcurl -d '{"id":"1"}' -plaintext localhost:50051 MockService.Get
 grpcurl -d '{"user_id":"1"}' -plaintext localhost:9090 DashboardService.GetDashboard
 ```
 
+Webflux:
+
+GraphQL:
+```shell
+./gradlew services:bff-graphql:bootRun 
+```
+
+
 ## How to Run - Docker
 
 ### gRPC
@@ -77,22 +71,27 @@ docker compose -f compose.grpc.yaml up --build
 
 Benchmark
 ```shell
-./benchmarks/grpc.sh
+cd benchmarks
+./grpc.sh 1000 20 4 10
 ```
 
 ### Webflux
-Start
+
 ```shell
-docker compose -f compose.webflux.yaml up
+docker compose -f compose.graphql.yaml up
 
 http :8081/dashboard
 ```
 
 ### graphQL
 
-`./benchmarks/graphql.sh`
+```shell
+docker compose -f compose.graphql.yaml up
 
-
+http POST :8081/graphql
+http POST :8081/graphql query="{dashboard{notifications,orders,user}}"
+curl -X POST http://localhost:8081/graphql -d '{"query": "query { dashboard {notifications orders user } }" }' -H "Content-Type: application/json"
+```
 
 ### OTEL
 Webflux
@@ -125,8 +124,8 @@ Terminal:
 ```shell
 #fortio load -logger-force-color -qps 5000 -c 6 -t 30s -nocatchup -uniform  http://localhost:8081/dashboard
 cd benchmark
-./benchmark.sh http-webflux localhost:8081 1000 10 6
-./benchmark.sh http-webflux localhost:8081 5000 20 6
+./benchmark.sh http_webflux localhost:8081 1000 10 6
+./benchmark.sh http_webflux localhost:8081 5000 20 6
 
 ./benchmark.sh grpc localhost:9090 1000 10 6 10
 ./benchmark.sh grpc localhost:9090 5000 20 6 100

@@ -17,4 +17,4 @@ include('services:mock-grpc-service')
 include('services:bff-webflux')
 include 'services:mock-http-service'
 
-// include('services:bff-graphql')
+include('services:bff-graphql')
